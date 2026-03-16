@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "VERITAS Sentinel",
+  "version": "4.0",
+  "description": "Deepfake & AI Text Forensic Scanner for Google Meet",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["xena.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Open Veritas Dashboard"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

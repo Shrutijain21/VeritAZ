@@ -1,0 +1,106 @@
+/* =========================================
+   VERITAS // VISUAL CORE // v22.0
+   ========================================= */
+
+:root {
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-yellow: #faff00;
+    --neon-pink: #ff00ff;
+    --neon-green: #0f0;
+    --neon-red: #f00;
+    --bg-deep: #050510;
+    --glass-bg: rgba(20, 20, 35, 0.90);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* --- THE HEADS UP DISPLAY (HUD) --- */
+#veritas-hud { 
+    position: fixed; 
+    top: 10px; 
+    left: 10px; 
+    width: 300px; 
+    background: var(--glass-bg); 
+    border: 1px solid var(--neon-blue); 
+    color: #fff; 
+    font-family: 'Courier New', monospace; 
+    z-index: 999999; 
+    padding: 15px; 
+    border-radius: 12px; 
+    pointer-events: none; /* Allows clicking through the HUD */
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.veritas-title { 
+    font-weight: bold; 
+    font-size: 18px; 
+    text-align: center; 
+    margin-bottom: 10px; 
+    color: var(--neon-blue); 
+    text-shadow: 0 0 5px var(--neon-blue); 
+}
+
+.veritas-module { 
+    margin-bottom: 10px; 
+    border-top: 1px solid var(--glass-border); 
+    padding-top: 5px; 
+}
+
+.veritas-label { 
+    font-size: 10px; 
+    color: var(--neon-purple); 
+    letter-spacing: 1px; 
+    text-transform: uppercase;
+}
+
+.veritas-status { 
+    font-size: 14px; 
+    font-weight: bold; 
+    margin-top: 2px; 
+}
+
+.status-safe { 
+    color: var(--neon-green); 
+    text-shadow: 0 0 5px var(--neon-green); 
+} 
+
+.status-warn { 
+    color: var(--neon-yellow); 
+} 
+
+.status-danger { 
+    color: var(--neon-red); 
+    text-shadow: 0 0 5px var(--neon-red); 
+}
+
+/* --- VIDEO TARGET OVERLAY --- */
+#veritas-target-overlay {
+    position: absolute;
+    z-index: 900;
+    pointer-events: none;
+    border: 2px solid var(--neon-blue);
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+#veritas-overlay-label {
+    background-color: rgba(0,0,0,0.7);
+    color: var(--neon-blue);
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    padding: 2px 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes pulse-red { 
+    0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); } 
+    70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); } 
+    100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } 
+}

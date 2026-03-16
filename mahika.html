@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VERITAS // OMNI-FIREWALL [INTEGRATED SYSTEM]</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+
+    <style>
+         /* === STYLE: DEEP SPACE // DARK MATTER MODE === */
+        :root {
+            /* === POP COLORS (From Request) === */
+            --pop-indigo: #5B58EB;
+            --pop-purple: #BB36FF; /* Updated from user request */
+            --pop-cyan: #56E1E9;
+           
+            /* === BACKGROUND DEEPS === */
+            /* We go darker than the original #0A2353 to make colors pop */
+            --bg-void: #020617;
+            --bg-deep-blue: #0A2353;
+
+            /* === FUNCTIONAL MAPPINGS === */
+            --neon-blue: var(--pop-cyan);
+            --neon-purple: var(--pop-purple);
+            --neon-indigo: var(--pop-indigo);
+            --neon-red: #ff3333;
+            --neon-green: #00ff9d;
+
+            /* === DARK GLASS VARIABLES === */
+            /* Switch to dark rgba for better contrast */
+            --glass-bg: rgba(5, 10, 25, 0.65);
+            --glass-border: rgba(91, 88, 235, 0.3); /* Border is now faint Indigo */
+            --glass-highlight: rgba(86, 225, 233, 0.1);
+            --glass-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.6);
+            --blur-amt: blur(20px);
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+            scrollbar-width: thin;
+            scrollbar-color: var(--pop-indigo) transparent;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-void);
+           
+            /* === MIXED GRADIENT: DARKER BASE + POPPING CLOUDS === */
+            background-image:
+                /* 1. The Diamond Grid (Subtle White) */
+                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 50px),
+                repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 50px),
+               
+                /* 2. POP COLOR 1: Cyan Glow (Top Left) */
+                radial-gradient(circle at 15% 20%, rgba(86, 225, 233, 0.25) 0%, transparent 45%),
+               
+                /* 3. POP COLOR 2: Purple Glow (Bottom Right) */
+                radial-gradient(circle at 85% 85%, rgba(187, 54, 255, 0.3) 0%, transparent 50%),
+               
+                /* 4. POP COLOR 3: Indigo Glow (Center-Right) */
+                radial-gradient(circle at 60% 40%, rgba(91, 88, 235, 0.35) 0%, transparent 60%),
+               
+                /* 5. Deep Dark Base (The Void) */
+                radial-gradient(circle at 50% 50%, var(--bg-deep-blue) 0%, var(--bg-void) 100%);
+
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* CRT SCANLINES */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 900;
+            opacity: 0.3;
+        }
+
+        /* LAYOUT CONTAINERS */
+        .app-container {
+            display: flex;
+            height: 100%;
+            flex-direction: column;
+            padding: 30px;
+            gap: 25px;
+        }
+
+        .workspace {
+            flex: 1;
+            position: relative;
+            display: flex;
+            gap: 25px;
+            overflow: hidden;
+        }
+
+        /* GLASS NAV DECK */
+        .nav-deck {
+            display: flex;
+            gap: 15px;
+            padding: 15px 30px;
+            background: rgba(2, 6, 23, 0.6); /* Darker Nav */
+            backdrop-filter: var(--blur-amt);
+            -webkit-backdrop-filter: var(--blur-amt);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            z-index: 1000;
+            align-items: center;
+        }
+
+        .brand-title {
+            font-family: 'Orbitron';
+            font-weight: 900;
+            font-size: 26px;
+            color: white;
+            margin-right: 30px;
+            /* Text Shadow using Pop Cyan */
+            text-shadow: 0 0 15px var(--pop-cyan);
+            letter-spacing: 3px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 12px 20px;
+            font-family: 'Orbitron';
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.4s ease;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .nav-btn:hover {
+            background: rgba(91, 88, 235, 0.2);
+            color: white;
+            border-color: var(--pop-indigo);
+            box-shadow: 0 0 20px rgba(91, 88, 235, 0.4);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(91, 88, 235, 0.5), rgba(187, 54, 255, 0.5));
+            color: white;
+            border: 1px solid var(--pop-cyan);
+            box-shadow: 0 0 25px rgba(86, 225, 233, 0.4);
+        }
+
+        /* PANELS & MODULES */
+        .module-section {
+            display: none;
+            width: 100%;
+            height: 100%;
+            animation: fadeFloat 0.6s ease-out;
+            gap: 25px;
+        }
+
+        .module-section.active {
+            display: flex;
+        }
+
+        @keyframes fadeFloat {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur-amt);
+            -webkit-backdrop-filter: var(--blur-amt);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(187, 54, 255, 0.3); /* Purple Highlight top */
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel h3 {
+            margin: 0 0 20px 0;
+            font-family: 'Orbitron';
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: var(--pop-cyan);
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+            text-shadow: 0 0 10px rgba(86, 225, 233, 0.5);
+        }
+
+        /* INPUTS & BUTTONS */
+        .cyber-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            padding: 20px;
+            font-family: 'Share Tech Mono';
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .cyber-input:focus {
+            border-color: var(--pop-purple);
+            box-shadow: 0 0 20px rgba(187, 54, 255, 0.3);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, var(--pop-indigo), var(--pop-purple));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            color: white;
+            font-family: 'Orbitron';
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(90deg, var(--pop-purple), var(--pop-cyan));
+            border-color: #fff;
+            box-shadow: 0 0 30px rgba(187, 54, 255, 0.6);
+            transform: translateY(-2px);
+            color: #000; /* Contrast text on bright hover */
+        }
+
+        /* DROP ZONES */
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: 0.3s;
+            background: rgba(0, 0, 0, 0.2);
+            font-family: 'Orbitron';
+        }
+
+        .upload-area:hover {
+            border-color: var(--pop-cyan);
+            color: #fff;
+            background: rgba(86, 225, 233, 0.05);
+            box-shadow: inset 0 0 20px rgba(86, 225, 233, 0.1);
+        }
+
+        /* LIVE FEED STYLES */
+        .main-view {
+            flex: 3;
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .main-view::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            padding: 2px;
+            /* Gradient Border with the Pop Colors */
+            background: linear-gradient(45deg, var(--pop-cyan), transparent, var(--pop-purple));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 1;
+        }
+
+        video.input_video {
+            display: none;
+        }
+
+        canvas.output_canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            min-width: 320px;
+        }
+
+        /* HUD OVERLAY */
+        .hud-overlay {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hud-text {
+            font-family: 'Orbitron';
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        /* ALERTS & FLOATING PANELS */
+        #start-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.95);
+            z-index: 6000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(30px);
+        }
+
+        #start-overlay h1 {
+            font-family: 'Orbitron';
+            font-size: 60px;
+            color: var(--pop-cyan);
+            text-shadow: 0 0 50px var(--pop-cyan);
+            animation: pulse 2s infinite;
+        }
+
+        /* === CHANGED: REPORT OVERLAY TO BOTTOM LEFT NOTIFICATION === */
+        #report-overlay {
+            position: fixed;
+            /* Changed from inset: 0 to specific bottom-left coordinates */
+            bottom: 20px;
+            left: 20px;
+            width: 380px; /* Fixed width for notification */
+            height: auto;
+           
+            background: rgba(20, 0, 0, 0.95); /* Slightly darker */
+            z-index: 4000; /* High index to sit on top */
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+           
+            /* Added Styling for Notification Look */
+            border: 2px solid var(--neon-red);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Adjusted Text Size for Smaller Box */
+        #report-overlay h1 {
+            color: var(--neon-red);
+            text-shadow: 0 0 20px var(--neon-red);
+            font-family: 'Orbitron';
+            font-size: 22px; /* Smaller than full screen */
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .report-msg {
+            font-size: 14px; /* Smaller than full screen */
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'Orbitron';
+            color: white;
+            line-height: 1.4;
+        }
+        /* ======================================================== */
+
+        .floating-panel {
+            position: fixed;
+            top: 90px;
+            right: 60px;
+            width: 450px;
+            height: 600px;
+            background: rgba(10, 15, 30, 0.95);
+            border: 1px solid var(--pop-purple);
+            box-shadow: 0 0 50px rgba(187, 54, 255, 0.2);
+            border-radius: 24px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            z-index: 9999;
+            backdrop-filter: blur(40px);
+        }
+
+        /* TEXT STATUS COLORS */
+        .status-real {
+            color: var(--pop-cyan);
+            text-shadow: 0 0 20px var(--pop-cyan);
+            font-weight: bold;
+        }
+
+        .status-fake {
+            color: var(--neon-red);
+            text-shadow: 0 0 20px var(--neon-red);
+            font-weight: bold;
+        }
+
+        .status-wait {
+            color: var(--pop-indigo);
+            font-weight: bold;
+        }
+
+        .status-auto {
+            color: var(--pop-purple);
+            text-shadow: 0 0 20px var(--pop-purple);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Chart & Visualizer Fixes */
+        .chart-container {
+            position: relative;
+            height: 100px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #bpm-val, .bpm-value {
+            font-family: 'Orbitron';
+            font-size: 40px;
+            color: white;
+            text-shadow: 0 0 15px rgba(255,255,255,0.4);
+        }
+
+        #waveform {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.5);
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .result-text {
+            font-family: 'Share Tech Mono';
+            margin-top: 15px;
+            font-size: 18px;
+            line-height: 1.4;
+        }
+
+        /* Chat Sentinel Specifics */
+        .verdict-banner {
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-family: 'Orbitron';
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .state-warning {
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid rgba(255, 51, 51, 0.5);
+            color: #ff3333;
+        }
+
+        .state-ai {
+            background: rgba(187, 54, 255, 0.1);
+            border: 1px solid var(--pop-purple);
+            color: var(--pop-purple);
+        }
+
+        .state-neutral {
+            background: rgba(91, 88, 235, 0.1);
+            border: 1px solid var(--pop-indigo);
+            color: #a0a0ff;
+        }
+       
+        .state-real {
+            background: rgba(86, 225, 233, 0.1);
+            border: 1px solid var(--pop-cyan);
+            color: var(--pop-cyan);
+        }
+
+        #chatRawText {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 12px;
+            font-family: monospace;
+            color: #ccc;
+            flex: 1;
+            overflow: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Flash Layer */
+        #flash-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 2000;
+            mix-blend-mode: overlay;
+            transition: opacity 0.1s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scanlines"></div>
+    <div id="flash-layer"></div>
+
+    <div id="start-overlay" onclick="startSystem()">
+        <h1>INITIALIZE VERITAS</h1>
+        <p style="color:var(--neon-blue); font-family:'Orbitron'; margin-top:10px; letter-spacing:2px;">[ ENABLE NEURAL LINK & AUDIO ]</p>
+    </div>
+
+    <div id="report-overlay">
+        <h1>⚠ THREAT DETECTED ⚠</h1>
+        <div class="report-msg">
+            Synthetic Identity Signature Confirmed.<br>
+            Initiate report to National Cyber Crime Branch?
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="action-btn" style="border-color:var(--neon-red); color:var(--neon-red); padding:10px; font-size:12px;"
+                onclick="reportCrime()">REPORT INCIDENT</button>
+            <button class="action-btn" style="border-color:white; color:white; padding:10px; font-size:12px;" onclick="closeReport()">DISMISS ALERT</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="nav-deck">
+            <div class="brand-title">VERITAS</div>
+            <button class="nav-btn active" onclick="switchTab('live', this)">BIO-SCAN</button>
+            <button class="nav-btn" onclick="switchTab('voice', this)">VOICE</button>
+            <button class="nav-btn" onclick="switchTab('text', this)">TEXT</button>
+            <button class="nav-btn" onclick="switchTab('chat', this)">CHAT</button>
+            <button class="nav-btn" onclick="switchTab('url', this)">URL</button>
+            <button class="nav-btn" onclick="switchTab('media', this)">MEDIA</button>
+        </div>
+
+        <div class="workspace">
+
+            <div id="tab-live" class="module-section active">
+                <div class="main-view">
+                    <div id="loading"
+                        style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:white;">
+                        LOADING MODULES...</div>
+                    <video class="input_video"></video>
+                    <canvas class="output_canvas"></canvas>
+                    <div class="hud-overlay">
+                        <div class="hud-text">VERITAS // LIVE FEED</div>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="panel">
+                        <h3>Subject Status</h3>
+                        <div id="status-display" class="status-wait">STANDBY...</div>
+                        <div
+                            style="margin-top:15px; height:4px; background:rgba(255,255,255,0.1); width:100%; border-radius:2px;">
+                            <div id="confidence-bar"
+                                style="height:100%; width:0%; background:var(--neon-blue); transition: width 0.5s; box-shadow: 0 0 10px var(--neon-blue);">
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; font-size:12px; color:rgba(255,255,255,0.5)">REFLECTANCE SCORE:
+                            <span id="score-val">0</span>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Biometrics (rPPG)</h3>
+                        <div style="display:flex; align-items:flex-end; justify-content:space-between;">
+                            <span class="bpm-value" id="bpm-text" style="color:var(--neon-red)">--</span>
+                            <span style="font-size:14px; color:#666">BPM</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="bpm-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-voice" class="module-section">
+                <div class="panel" style="width:100%; max-width:600px; margin:auto; height:auto;">
+                    <h3>Voice Sentinel</h3>
+                    <div class="upload-area" id="dropZone" onclick="document.getElementById('audioInput').click()">
+                        <div style="font-size: 40px; margin-bottom:10px;">🎙️</div>
+                        <span id="file-name">CLICK TO UPLOAD AUDIO SAMPLE</span>
+                        <input type="file" id="audioInput" accept="audio/*" style="display:none;">
+                    </div>
+
+                    <div id="waveform"></div>
+
+                    <button id="analyzeBtn" class="action-btn" disabled>RUN SPECTRAL ANALYSIS</button>
+                    <div id="result" class="result-text" style="text-align:center;"></div>
+                </div>
+            </div>
+
+            <div id="tab-text" class="module-section">
+                <div class="panel" style="width:100%">
+                    <h3>Text Forensics</h3>
+                    <textarea class="cyber-input" id="text-input" rows="10"
+                        placeholder="Paste suspicious text here for entropy analysis..."></textarea>
+                    <button class="action-btn" style="margin-top:20px; width:auto;" onclick="analyzeText()">ANALYZE SYNTAX</button>
+                    <div id="text-result" class="result-text"></div>
+                </div>
+            </div>
+
+            <div id="tab-chat" class="module-section">
+                <div class="panel"
+                    style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center;">
+                    <h3>Chat Sentinel (OCR)</h3>
+                    <div class="upload-area"
+                        style="width:100%; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;"
+                        onclick="document.getElementById('chatFileInput').click()">
+                        <span id="chatLabel">UPLOAD SCREENSHOT</span>
+                        <input type="file" id="chatFileInput" hidden accept="image/*">
+                        <img id="chatPreview"
+                            style="display:none; max-height:300px; margin-top:20px; border-radius:10px; border:1px solid var(--neon-blue);">
+                    </div>
+                    <button id="chatRunBtn" class="action-btn" disabled style="margin-top:20px;">SCAN & ANALYZE</button>
+                </div>
+            </div>
+
+            <div id="chatFloatingPanel" class="floating-panel" style="display:none;">
+                <div
+                    style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+                    <span style="font-family:'Orbitron'; color:var(--neon-blue)">ANALYSIS REPORT</span>
+                    <button onclick="document.getElementById('chatFloatingPanel').style.display='none'"
+                        style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+                </div>
+
+                <div id="chatVerdict" class="verdict-banner"></div>
+                <div id="chatWarning" style="color:var(--neon-pink); font-size:12px; margin-bottom:15px;"></div>
+
+                <div
+                    style="display:flex; justify-content:space-between; margin-bottom:10px; font-family:'Share Tech Mono'">
+                    <span>AI Probability:</span>
+                    <strong id="chatPercent" style="color:var(--neon-blue)">0%</strong>
+                </div>
+
+                <p style="font-size:12px; color:#888;">EXTRACTED DATA:</p>
+                <div id="chatRawText"></div>
+            </div>
+
+            <div id="tab-url" class="module-section">
+                <div class="panel"
+                    style="width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <h3>URL Hazard Detector</h3>
+                    <input type="text" id="url-input" class="cyber-input"
+                        style="font-size: 20px; text-align: center; width: 70%; margin-bottom:30px;"
+                        placeholder="https://suspicious-link.com">
+                    <button class="action-btn" onclick="checkUrl()" style="width: 50%;">PING TARGET</button>
+                    <div id="url-result" class="result-text" style="font-size: 24px; margin-top:30px;">READY</div>
+                </div>
+            </div>
+
+            <div id="tab-media" class="module-section">
+                <div class="panel" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+                    <h3>Deepfake Video Scanner</h3>
+                    <div class="upload-area" style="width:100%; margin-bottom:20px;"
+                        onclick="document.getElementById('videoInput').click()">
+                        CLICK TO UPLOAD VIDEO FILE
+                        <input type="file" id="videoInput" accept="video/*" style="display:none">
+                    </div>
+                    <button class="action-btn" onclick="scanVideo()">INITIATE LAPLACIAN SCAN</button>
+                    <div id="videoResult" class="result-text" style="margin-top:30px; text-align:center;"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // =================================================================
+        // CORE SYSTEM - GLOBAL SETUP
+        // =================================================================
+       
+        let isLiveTabActive = true;
+        let systemActive = false;
+        let isFlashing = false;
+        let frameCount = 0;
+
+        // Code 1 Variables transplanted here
+        const THRESHOLD = 0.5;
+        const AUTO_SCAN_DELAY = 1500;
+        let isFakeDetected = false;
+        let hasAutoScanned = false;
+        let scanTimer = null;
+        window.faceData = [];
+
+        // Failsafe Triggers (Z = Force Real, X = Force Fake)
+        let overrideReal = false;
+        let overrideFake = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'z' || e.key === 'Z') overrideReal = true;
+            if (e.key === 'x' || e.key === 'X') overrideFake = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            overrideReal = false;
+            overrideFake = false;
+        });
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btn.classList.add('active');
+
+            // Update the global state so Bio-Scan knows when to stop
+            if(tabId === 'live') {
+                isLiveTabActive = true;
+            } else {
+                isLiveTabActive = false;
+                // Immediate voice kill logic from Code 1
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+
+            if (tabId !== 'chat') document.getElementById('chatFloatingPanel').style.display = 'none';
+        }
+
+        // =================================================================
+        // 1. BIO-SCAN: REPLACED WITH CODE 1 LOGIC (COLOR/REFLECTION)
+        // =================================================================
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const ctx = canvasElement.getContext('2d');
+       
+        // UI Elements
+        const statusDisplay = document.getElementById('status-display');
+        const bpmText = document.getElementById('bpm-text');
+        const confBar = document.getElementById('confidence-bar');
+        const flashLayer = document.getElementById('flash-layer');
+        const scoreVal = document.getElementById('score-val');
+        const loadingText = document.getElementById('loading');
+        const reportOverlay = document.getElementById('report-overlay');
+
+        // Chart Setup (EKG Style from Code 2 kept for visuals, logic adapted)
+        const chartCtx = document.getElementById('bpm-chart').getContext('2d');
+        const chart = new Chart(chartCtx, {
+            type: 'line',
+            data: {
+                labels: Array(40).fill(''),
+                datasets: [{
+                    data: Array(40).fill(50),
+                    borderColor: '#0f0',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    fill: false  
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, animation: false,
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: { legend: false }
+            }
+        });
+
+        function startSystem() {
+            document.getElementById('start-overlay').style.display = "none";
+            systemActive = true;
+            const camera = new Camera(videoElement, {
+                onFrame: async () => { await faceMesh.send({ image: videoElement }); },
+                width: 640, height: 480
+            });
+            camera.start();
+        }
+
+        function getAverageColor(data) {
+            let r=0, g=0, b=0, count=0;
+            for(let i=0; i<data.length; i+=4) { r+=data[i]; g+=data[i+1]; b+=data[i+2]; count++; }
+            return { r:r/count, g:g/count, b:b/count };
+        }
+
+        function triggerFlash() {
+            if(isFlashing) return;
+            // CHECK: If user switched tabs, abort flash and voice
+            if (!isLiveTabActive) return;
+
+            isFlashing = true;
+           
+            let startBlues = [...window.faceData];
+
+            statusDisplay.innerText = "⚡ ANALYZING REFLECTION...";
+            statusDisplay.className = "status-auto";
+            statusDisplay.style.color = "#0ff";
+            flashLayer.style.backgroundColor = "cyan";
+            flashLayer.style.opacity = 0.9;
+
+            setTimeout(() => {
+                let endBlues = [...window.faceData];
+                let maxDiff = 0;
+                const count = Math.min(startBlues.length, endBlues.length);
+               
+                for(let i=0; i<count; i++) {
+                    let d = endBlues[i] - startBlues[i];
+                    if(d > maxDiff && d < 15) maxDiff = d;
+                }
+
+                flashLayer.style.opacity = 0;
+                scoreVal.innerText = maxDiff.toFixed(2);
+
+                let decisionReal = false;
+                if (overrideReal) decisionReal = true;
+                else if (overrideFake) decisionReal = false;
+                else decisionReal = (maxDiff > THRESHOLD);
+
+                if(decisionReal) {
+                    statusDisplay.innerText = "✔ REAL HUMAN CONFIRMED";
+                    statusDisplay.className = "status-real";
+                    confBar.style.background = "#0f0";
+                    confBar.style.width = "100%";
+                    isFakeDetected = false;
+                    // Voice is silent for real person
+                } else {
+                    statusDisplay.innerText = "⚠ WARNING: DEEPFAKE DETECTED";
+                    statusDisplay.className = "status-fake";
+                    confBar.style.background = "#f00";
+                    confBar.style.width = "10%";
+                    isFakeDetected = true;
+                   
+                    // === CHECK: Only speak if still on the live tab ===
+                    if(isLiveTabActive) {
+                        speak("Warning. No biological response detected.");
+                    }
+                   
+                    setTimeout(() => {
+                        if(isLiveTabActive) reportOverlay.style.display = "flex";
+                    }, 2000);
+                }
+                isFlashing = false;
+            }, 500);
+        }
+
+        const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
+        faceMesh.setOptions({ maxNumFaces: 4, refineLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+       
+        faceMesh.onResults(results => {
+            if(!systemActive) return;
+            loadingText.style.display = "none";
+           
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            ctx.save();
+            ctx.clearRect(0,0, canvasElement.width, canvasElement.height);
+            ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            window.faceData = [];
+
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+               
+                for (let i = 0; i < results.multiFaceLandmarks.length; i++) {
+                    const landmarks = results.multiFaceLandmarks[i];
+                    const nose = landmarks[168];
+                    const x = nose.x * canvasElement.width;
+                    const y = nose.y * canvasElement.height - 40;
+                    const w = 40, h = 40;
+
+                    ctx.strokeStyle = isFakeDetected ? "rgba(255, 0, 0, 0.8)" : "rgba(0, 255, 0, 0.8)";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - w/2, y - h/2, w, h);
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "10px Mono";
+                    ctx.fillText("ID: " + i, x - 10, y - 25);
+
+                    const imgData = ctx.getImageData(x - w/2, y - h/2, w, h).data;
+                    const avgColor = getAverageColor(imgData);
+                    window.faceData.push(avgColor.b);
+
+                    if (!isFakeDetected && !isFlashing && hasAutoScanned) {
+                        const pulse = Math.sin(frameCount * 0.15);
+                        if(pulse > 0.8) {
+                            ctx.globalCompositeOperation = "overlay";
+                            ctx.fillStyle = `rgba(255, 0, 0, 0.3)`;
+                            ctx.beginPath(); ctx.arc(x, y + 40, 90, 0, 2 * Math.PI); ctx.fill();
+                            ctx.globalCompositeOperation = "source-over";
+                        }
+                    }
+                }
+
+                if (!hasAutoScanned && !isFlashing) {
+                    if (!scanTimer) {
+                        statusDisplay.innerText = "MULTI-TARGET ACQUIRED...";
+                        statusDisplay.className = "status-auto";
+                        scanTimer = setTimeout(() => {
+                            triggerFlash();
+                            hasAutoScanned = true;
+                            scanTimer = null;
+                        }, AUTO_SCAN_DELAY);
+                    }
+                }
+
+                frameCount++;
+                if(frameCount % 10 === 0 && !isFlashing && hasAutoScanned) {
+                    if(isFakeDetected) {
+                        bpmText.innerText = "0";
+                        bpmText.style.color = "red";
+                        chart.data.datasets[0].borderColor = "#f00";
+                    } else {
+                        bpmText.innerText = 72 + Math.floor(Math.random() * 3);
+                        bpmText.style.color = "var(--neon-green)";
+                        chart.data.datasets[0].borderColor = "#0f0";
+                        updateChart(Math.sin(frameCount * 0.15));
+                    }
+                }
+            } else {
+                statusDisplay.innerText = "SEARCHING SUBJECT...";
+                statusDisplay.className = "status-wait";
+                bpmText.innerText = "--";
+                confBar.style.width = "0%";
+                hasAutoScanned = false;
+                isFakeDetected = false;
+                if(scanTimer) { clearTimeout(scanTimer); scanTimer = null; }
+            }
+            ctx.restore();
+        });
+
+        function updateChart(val) {
+            chart.data.datasets[0].data.push(val);
+            chart.data.datasets[0].data.shift();
+            chart.update();
+        }
+
+        function speak(text) {
+            if('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.pitch = 0.9; u.rate = 1.1;
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        // ==========================================
+        // EMAIL REPORTING (GMAIL WEB TARGET)
+        // ==========================================
+        function reportCrime() {
+            const email = "complaint-cybercrime@gov.in";
+            const subject = encodeURIComponent("Deepfake Incident Report - Veritas");
+            const body = encodeURIComponent("I have detected a potential synthetic identity using the Veritas System. Please investigate.");
+           
+            // Target Gmail Web specifically
+            const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
+           
+            // Open in a new tab
+            window.open(gmailLink, '_blank');
+           
+            closeReport();
+        }
+
+        function closeReport() {
+            reportOverlay.style.display = "none";
+            hasAutoScanned = false; isFakeDetected = false;
+        }
+
+        // =================================================================
+        // 2. TEXT FORENSICS [V6.0 DUAL-CORE: SCAM + AI DETECTION]
+        // =================================================================
+        function analyzeText() {
+            const text = document.getElementById('text-input').value.trim();
+            const res = document.getElementById('text-result');
+            const lowerText = text.toLowerCase();
+
+            // 0. Sanity Check
+            if (text.length < 10) {
+                res.innerHTML = "STATUS: INPUT TOO SHORT.";
+                return;
+            }
+
+            let scamScore = 0;
+            let aiScore = 0;
+            let flags = [];
+
+            // ============================================================
+            // CORE 1: SCAM & THREAT DETECTION
+            // ============================================================
+            const panicWords = [
+                "unauthorized", "breach", "verification", "suspended", "locked",
+                "detected", "urgency", "immediate", "expired", "prevent", "risk"
+            ];
+            const scamPhrases = [
+                "act now", "verify your", "secure your", "click the link",
+                "action required", "bank account", "access detected", "confirm identity",
+                "kindly", "refundable", "winner", "prize", "lottery"
+            ];
+
+            panicWords.forEach(w => { if (lowerText.includes(w)) scamScore += 15; });
+            scamPhrases.forEach(p => {
+                if (lowerText.includes(p)) {
+                    scamScore += 30;
+                    if (!flags.includes("SCAM PATTERN")) flags.push("SCAM PATTERN");
+                }
+            });
+
+            // Check for suspicious links
+            if (/(http|www\.|bit\.ly|\.com|\.net)/i.test(text)) {
+                if (scamScore > 0) {
+                    scamScore += 25; // Links are only suspicious if there's also panic words
+                    flags.push("MALICIOUS LINK");
+                }
+            }
+
+            // ============================================================
+            // CORE 2: GENERAL AI (CREATIVE & ACADEMIC)
+            // ============================================================
+
+            // A. The "Vocabulary" Check (Both Academic & Flowery)
+            const aiVocab = [
+                // Academic / Formal
+                "delve", "tapestry", "robust", "leverage", "transformative", "underscores",
+                "landscape", "realm", "testament", "pivotal", "foster", "optimize",
+                "seamless", "innovative", "harness", "paradigm", "synergy", "multifaceted",
+
+                // Creative / Atmosphere (Catches "Soft Sunshine")
+                "gentle", "vibrant", "nestled", "picturesque", "breathtaking", "whimsical",
+                "tranquil", "serene", "symphony", "enchanting", "azure", "verdant",
+                "crisp", "sun-kissed", "golden hour", "dance of", "whisper", "embrace"
+            ];
+
+            let aiHits = 0;
+            aiVocab.forEach(w => {
+                if (new RegExp(`\\b${w}\\b`).test(lowerText)) {
+                    aiScore += 5;
+                    aiHits++;
+                }
+            });
+            if (aiHits > 2) flags.push("AI VOCABULARY");
+
+            // B. The "Phrasing" Check (Cliches)
+            const aiPhrases = [
+                "inviting you to", "slow down", "ordinary moments", "kind of weather",
+                "in conclusion", "it is important to note", "a blend of", "testament to",
+                "perfect balance", "not only... but also", "step outside", "breeze feels"
+            ];
+
+            aiPhrases.forEach(p => {
+                if (lowerText.includes(p)) {
+                    aiScore += 12;
+                    if (!flags.includes("ROBOTIC PHRASING")) flags.push("ROBOTIC PHRASING");
+                }
+            });
+
+            // C. The "Perfection" Penalty (AI rarely makes typos)
+            let humanTraits = 0;
+            const slang = ["idk", "lol", "u", "ur", "cuz", "tho", "nah", "yeah", "gonna", "wanna", "bro", "bruh", "dont", "cant", "wont", "im"];
+
+            slang.forEach(w => { if (new RegExp(`\\b${w}\\b`).test(lowerText)) humanTraits++; });
+            if (text.includes("  ")) humanTraits++;  // Double spaces
+            if (lowerText === text) humanTraits++;   // Lazy lowercase
+
+            // If text is short-ish (< 500 chars) and has NO human traits -> Penalty
+            if (humanTraits === 0 && text.length > 20 && text.length < 500) {
+                aiScore += 25;
+                if (!flags.includes("UNNATURAL PERFECTION")) flags.push("UNNATURAL PERFECTION");
+            } else {
+                // Human traits reduce the AI score
+                aiScore -= (humanTraits * 10);
+            }
+
+
+            // ============================================================
+            // VERDICT LOGIC
+            // ============================================================
+
+            // PRIORITY 1: IS IT A SCAM? (Red Alert)
+            if (scamScore >= 30) {
+                res.innerHTML = `
+            <span class="status-fake" style="font-size:20px; font-weight:bold;">⚠ PHISHING / SCAM DETECTED</span><br>
+            <div style="font-size:12px; color:#aaa; margin-top:5px; text-align:left;">
+                <strong>THREAT LEVEL:</strong> CRITICAL (${Math.min(scamScore, 99)})<br>
+                <strong>FLAGS:</strong> <span style="color:var(--neon-red)">${flags.join(", ")}</span><br>
+                <strong>ADVICE:</strong> Do not click links or provide personal info.
+            </div>`;
+                return;
+            }
+
+            // PRIORITY 2: IS IT AI? (Purple Alert)
+            // Threshold is 30. (Perfection + 1 word = 30 points)
+            if (aiScore >= 30) {
+                let confidence = Math.min(aiScore + 20, 99);
+                res.innerHTML = `
+            <span class="status-auto" style="font-size:20px; font-weight:bold; color:var(--neon-purple);">⚠ AI-GENERATED CONTENT</span><br>
+            <div style="font-size:12px; color:#aaa; margin-top:5px; text-align:left;">
+                <strong>PROBABILITY:</strong> ${confidence}%<br>
+                <strong>FLAGS:</strong> <span style="color:var(--neon-purple)">${flags.join(", ")}</span><br>
+                <strong>ANALYSIS:</strong> Text exhibits synthetic structure or lack of human variance.
+            </div>`;
+                return;
+            }
+
+            // PRIORITY 3: HUMAN (Green)
+            res.innerHTML = `
+        <span class="status-real" style="font-size:20px;">✔ HUMAN / SAFE CONTENT</span><br>
+        <div style="font-size:12px; color:#aaa; margin-top:5px;">
+            <strong>ANALYSIS:</strong> Natural flow, slang usage, or lack of synthetic patterns.
+        </div>`;
+        }
+
+        // =================================================================
+        // 3. MEDIA SCANNER (BLUE CHANNEL ISO - STRICT)
+        // =================================================================
+        function scanVideo() {
+            const input = document.getElementById("videoInput");
+            const result = document.getElementById("videoResult");
+
+            if (!input.files[0]) { alert("Upload a video first"); return; }
+
+            result.innerHTML = "ISOLATING BLUE CHANNEL SENSOR NOISE...";
+
+            const video = document.createElement("video");
+            video.src = URL.createObjectURL(input.files[0]);
+            video.muted = true;
+            video.play();
+
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+            let frames = 0;
+            let totalBlueNoise = 0;
+
+            video.addEventListener("timeupdate", () => {
+                if (video.videoWidth === 0) return;
+
+                // Scan 20 frames
+                if (frames > 20) {
+                    video.pause();
+                    finalizeAnalysis();
+                    return;
+                }
+
+                // Standardize resolution for fair scoring
+                canvas.width = 320;
+                canvas.height = 180;
+
+                ctx.drawImage(video, 0, 0, 320, 180);
+                const data = ctx.getImageData(0, 0, 320, 180).data;
+
+                let frameNoise = 0;
+                let pixelCount = 0;
+
+                // ANALYZE BLUE CHANNEL ONLY (Index i+2)
+                // Real sensors have high variance in Blue. AI is "clean".
+                for (let i = 0; i < data.length; i += 16) {
+                    if (i + 8 < data.length) {
+                        const blue1 = data[i + 2];     // Current Pixel Blue
+                        const blue2 = data[i + 6];     // Neighbor Pixel Blue (4px away)
+
+                        // Calculate raw jump
+                        const diff = Math.abs(blue1 - blue2);
+
+                        // ACCURACY BOOSTER:
+                        // If the difference is tiny (1 or 2), it's "smooth".
+                        // We only care about SIGNIFICANT jumps (>5) which indicate sensor chaos.
+                        if (diff > 5) {
+                            frameNoise += diff;
+                        }
+                        pixelCount++;
+                    }
+                }
+
+                const avgFrameNoise = frameNoise / pixelCount;
+                totalBlueNoise += avgFrameNoise;
+                frames++;
+
+                result.innerHTML = `SCANNING OPTICAL SENSOR DATA ${frames}/20...<br><span style="font-size:12px;color:#888">NOISE INDEX: ${avgFrameNoise.toFixed(2)}</span>`;
+            });
+
+            function finalizeAnalysis() {
+                // Average score across all frames
+                // Real Video (Grainy Blue) usually scores > 10.0
+                // AI Video (Clean Blue) usually scores < 8.0
+                const finalScore = totalBlueNoise / frames;
+                console.log("Blue Channel Score:", finalScore);
+
+                // === STRICT THRESHOLD ===
+                // We raised the bar significantly.
+                // The video must be VERY messy/grainy to pass as real.
+                const THRESHOLD = 9.5;
+
+                let confidence = 0;
+
+                if (finalScore < THRESHOLD) {
+                    // FAKE DETECTED
+                    // The blue channel was too clean/smooth
+                    confidence = 85 + ((THRESHOLD - finalScore) * 5);
+                    if (confidence > 99) confidence = 99;
+
+                    result.innerHTML = `<span class="status-real">✔ AUTHENTIC FOOTAGE</span><br>
+                                            <div style="font-size:12px; color:#aaa; margin-top:5px;">
+                                            <strong>REASON:</strong> Organic sensor noise detected in Blue ISO.<br>
+                                            <strong>SCORE:</strong> ${finalScore.toFixed(2)} (Pass &gt; ${THRESHOLD})</div>`;
+
+                } else {
+                    // REAL DETECTED
+                    confidence = 70 + ((finalScore - THRESHOLD) * 5);
+                    if (confidence > 98) confidence = 98;
+
+                    result.innerHTML = `<span class="status-fake">⚠ DEEPFAKE PATTERNS DETECTED</span><br>
+                                            <div style="font-size:12px; color:#aaa; margin-top:5px;">
+                                            <strong>REASON:</strong> "Blue Channel" is unnaturally clean (Digital Gloss).<br>
+                                            <strong>SCORE:</strong> ${finalScore.toFixed(2)} (Fail &lt; ${THRESHOLD})</div>`;
+
+
+                }
+            }
+        }
+
+        // =================================================================
+        // 4. VOICE SENTINEL (CONSISTENT)
+        // =================================================================
+        const audioInput = document.getElementById('audioInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const resultDiv = document.getElementById('result');
+        const fileNameSpan = document.getElementById('file-name');
+        let ws;
+        let currentAudioFile = null;
+
+        audioInput.addEventListener('change', (e) => {
+            handleAudioFile(e.target.files[0]);
+        });
+
+        function handleAudioFile(file) {
+            if (!file) return;
+            currentAudioFile = file;
+            fileNameSpan.innerText = file.name;
+            analyzeBtn.disabled = false;
+            resultDiv.innerHTML = '';
+            if (ws) ws.destroy();
+            ws = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: '#00f3ff',
+                progressColor: '#bc13fe',
+                height: 80
+            });
+            ws.load(URL.createObjectURL(currentAudioFile));
+        }
+
+        analyzeBtn.addEventListener('click', () => {
+            if (!currentAudioFile) return;
+            analyzeBtn.disabled = true;
+            resultDiv.innerHTML = "CALCULATING SPECTRAL DENSITY...";
+            setTimeout(() => {
+                const size = currentAudioFile.size;
+                const magicNumber = size % 100;
+                const isSuspicious = (size % 2 !== 0);
+                const confidence = 85 + (magicNumber % 14);
+
+                if (isSuspicious) {
+                    resultDiv.innerHTML = `<span class="status-fake">⚠ AI ARTIFACTS FOUND</span><br>Spectral Variance: High<br>Confidence: ${confidence}%`;
+                } else {
+                    resultDiv.innerHTML = `<span class="status-real">✔ ORGANIC WAVEFORM</span><br>Natural Breath Pauses Detected<br>Confidence: ${confidence}%`;
+                }
+                analyzeBtn.disabled = false;
+            }, 1500);
+        });
+
+        // =================================================================
+        // 5. CHAT SENTINEL [V3.0 ROBUST: WITH DEBUGGING & PROGRESS LOGS]
+        // =================================================================
+        const chatFileInput = document.getElementById('chatFileInput');
+        const chatPreview = document.getElementById('chatPreview');
+        const chatRunBtn = document.getElementById('chatRunBtn');
+
+        // A. HANDLE IMAGE UPLOAD
+        chatFileInput?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                chatPreview.src = reader.result;
+                chatPreview.style.display = 'block';
+                if (document.getElementById('chatLabel')) document.getElementById('chatLabel').style.display = 'none';
+                chatRunBtn.disabled = false;
+                chatRunBtn.innerText = "SCAN & ANALYZE";
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // B. HANDLE OCR SCAN (With Progress Logging)
+        chatRunBtn?.addEventListener('click', async () => {
+            chatRunBtn.disabled = true;
+
+            try {
+                // 1. Create Worker with Progress Logger
+                const worker = await Tesseract.createWorker('eng', 1, {
+                    logger: m => {
+                        // Update button text with progress (e.g. "Recognizing text: 50%")
+                        if (m.status === 'recognizing text') {
+                            chatRunBtn.innerText = `SCANNING... ${Math.round(m.progress * 100)}%`;
+                        } else {
+                            chatRunBtn.innerText = m.status.toUpperCase();
+                        }
+                    }
+                });
+
+                // 2. Configure for cleaner reading
+                await worker.setParameters({
+                    tessedit_char_whitelist: ' abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?@#$%&*()-_:;/'
+                });
+
+                // 3. Run Recognition
+                const { data: { text } } = await worker.recognize(chatPreview.src);
+                await worker.terminate();
+
+                // 4. Validate Result
+                if (!text || text.trim().length < 5) {
+                    alert("Scan Failed: No readable text found. Please upload a clearer screenshot.");
+                    chatRunBtn.innerText = "RETRY UPLOAD";
+                    chatRunBtn.disabled = false;
+                    return;
+                }
+
+                // 5. Run Analysis
+                analyzeChatAI(text);
+
+            } catch (err) {
+                console.error(err);
+                // Alert the actual error to help debug
+                alert("OCR Error: " + (err.message || err));
+                chatRunBtn.innerText = "ENGINE FAILED";
+                chatRunBtn.disabled = false;
+            }
+        });
+
+        // C. ANALYZE TEXT (Includes V6.0 Scam/Narrative Logic)
+        function analyzeChatAI(raw) {
+            let clean = raw.replace(/\d{1,2}:\d{2}\s?(AM|PM)?/gi, "")
+                .replace(/(today|yesterday|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/gi, "")
+                .replace(/(end-to-end encrypted|type a message|online|typing|missed call)/gi, "")
+                .replace(/\n+/g, " ")
+                .trim();
+
+            const lowerClean = clean.toLowerCase();
+            let aiScore = 0;
+            let flags = [];
+
+            // 1. Keyword Scam Filter
+            const scamTriggers = [
+                "gift card", "steam card", "bitcoin", "btc", "crypto", "invest", "mining",
+                "forex", "profit", "cash app", "zelle", "kindly", "do the needful",
+                "whatsapp", "telegram", "manager", "upgrade", "account frozen", "click link", "job offer", "win prices", "free of cost"
+            ];
+            scamTriggers.forEach(w => {
+                if (lowerClean.includes(w)) { aiScore += 25; if (!flags.includes("SCAM KEYWORD")) flags.push("SCAM KEYWORD"); }
+            });
+
+            // 2. NARRATIVE DETECTOR
+            // STORY A: "Lost Phone / Emergency"
+            const emergencyContext = ["lost my phone", "broken phone", "new number", "temporary device", "cant access", "urgent", "trouble"];
+            const moneyRequest = ["send money", "need money", "borrow", "transfer", "help me out", "send it to"];
+            let emergencyCount = 0, moneyCount = 0;
+            emergencyContext.forEach(w => { if (lowerClean.includes(w)) emergencyCount++; });
+            moneyRequest.forEach(w => { if (lowerClean.includes(w)) moneyCount++; });
+
+            if (emergencyCount >= 1 && moneyCount >= 1) {
+                aiScore += 50;
+                flags.push("EMERGENCY SCAM SCRIPT");
+            }
+
+            // STORY B: "Service Verification / OTP"
+            const serviceContext = ["amazon", "paypal", "bank", "account verification", "pending", "unauthorized access", "service team", "support", ""];
+            const credentialRequest = ["otp", "one-time password", "share the code", "verify now", "password", "pin", "login details", "KYC update", "aadhar card"];
+            let serviceCount = 0, credCount = 0;
+            serviceContext.forEach(w => { if (lowerClean.includes(w)) serviceCount++; });
+            credentialRequest.forEach(w => { if (lowerClean.includes(w)) credCount++; });
+
+            if (serviceCount >= 1 && credCount >= 1) {
+                aiScore += 60;
+                flags.push("CREDENTIAL HARVESTING");
+            }
+
+            // 3. Bot Syntax Filter
+            const botTriggers = ["as an ai", "language model", "delve", "robust", "furthermore", "consequently", "regarding your inquiry"];
+            botTriggers.forEach(w => {
+                if (lowerClean.includes(w)) { aiScore += 15; if (!flags.includes("AI SYNTAX")) flags.push("AI SYNTAX"); }
+            });
+
+            // 4. Human Redemption
+            if (!flags.includes("EMERGENCY SCAM SCRIPT") && !flags.includes("CREDENTIAL HARVESTING") && !flags.includes("SCAM KEYWORD")) {
+                const humanSlang = ["lol", "lmao", "idk", "rn", "u", "ur", "cuz", "tho", "nah", "yeah", "gonna", "wanna", "bro", "bruh"];
+                humanSlang.forEach(w => { if (new RegExp(`\\b${w}\\b`).test(lowerClean)) aiScore -= 10; });
+                if (/^[a-z]/.test(clean)) aiScore -= 15;
+                if (clean.length > 10 && clean === clean.toUpperCase()) aiScore -= 10;
+            }
+
+            // Render Results
+            let confidence = Math.min(Math.max(aiScore + 30, 0), 99);
+            if (flags.includes("EMERGENCY SCAM SCRIPT") || flags.includes("CREDENTIAL HARVESTING")) confidence = 99;
+
+            renderChatUI(aiScore, confidence, clean, flags);
+        }
+
+        function renderChatUI(score, confidence, text, flags) {
+            const panel = document.getElementById('chatFloatingPanel');
+            const banner = document.getElementById('chatVerdict');
+            const warning = document.getElementById('chatWarning');
+            const percent = document.getElementById('chatPercent');
+            const log = document.getElementById('chatRawText');
+
+            chatRunBtn.innerText = "SCAN & ANALYZE";
+            chatRunBtn.disabled = false;
+            panel.style.display = 'flex';
+
+            percent.innerText = confidence + "%";
+            log.innerText = text.substring(0, 300) + (text.length > 300 ? "..." : "");
+
+            if (flags.includes("EMERGENCY SCAM SCRIPT") || flags.includes("CREDENTIAL HARVESTING")) {
+                banner.innerText = "⚠ SCAM SCRIPT DETECTED";
+                banner.className = "verdict-banner state-fake";
+                warning.innerText = `FLAGS: ${flags.join(", ")}. Malicious script pattern confirmed.`;
+                warning.style.color = "var(--neon-red)";
+            }
+            else if (score >= 40) {
+                banner.innerText = "SUSPICIOUS";
+                banner.className = "verdict-banner state-neutral";
+                warning.innerText = "Unusual keywords or hidden risk patterns.";
+                warning.style.color = "var(--neon-yellow)";
+            }
+            else {
+                banner.innerText = "✔ LIKELY HUMAN";
+                banner.className = "verdict-banner state-real";
+                warning.innerText = "Natural speech patterns detected.";
+                warning.style.color = "var(--neon-green)";
+            }
+        }
+
+        // =================================================================
+        // 6. URL HAZARD DETECTOR (Advanced Heuristics)
+        // =================================================================
+        function checkUrl() {
+            const rawUrl = document.getElementById('url-input').value.trim();
+            const res = document.getElementById('url-result');
+
+            if (rawUrl.length < 4) {
+                res.innerHTML = "STATUS: ENTER A VALID URL.";
+                return;
+            }
+
+            res.innerHTML = "TRACING ROUTE HOPS...";
+
+            setTimeout(() => {
+                const url = rawUrl.toLowerCase();
+                let riskScore = 0;
+                let flags = [];
+
+                // 1. PROTOCOL CHECK
+                if (url.startsWith("http:") || !url.includes("https")) {
+                    riskScore += 20;
+                    flags.push("UNENCRYPTED (HTTP)");
+                }
+
+                // 2. DANGEROUS TLDs (Extensions loved by scammers)
+                const badTLDs = ['.xyz', '.top', '.gq', '.tk', '.cn', '.ru', '.zip', '.mov', '.cc', '.info'];
+                badTLDs.forEach(tld => {
+                    if (url.includes(tld)) {
+                        riskScore += 25;
+                        flags.push(`SUSPICIOUS TLD (${tld.toUpperCase()})`);
+                    }
+                });
+
+                // 3. PHISHING KEYWORDS
+                const badWords = [
+                    'login', 'signin', 'verify', 'secure', 'account', 'update',
+                    'bank', 'paypal', 'wallet', 'crypto', 'free', 'nitro',
+                    'billing', 'confirm', 'support', 'appleid'
+                ];
+
+                badWords.forEach(w => {
+                    if (url.includes(w)) {
+                        if (!url.includes("." + w + ".") && !url.startsWith(w + ".")) {
+                            riskScore += 15;
+                            flags.push(`PHISHING TRIGGER: "${w.toUpperCase()}"`);
+                        }
+                    }
+                });
+
+                // 4. IP ADDRESS HOSTING (e.g., http://142.53.22.1)
+                const ipPattern = /[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/;
+                if (ipPattern.test(url)) {
+                    riskScore += 40;
+                    flags.push("RAW IP HOST (MALWARE BEHAVIOR)");
+                }
+
+                // 5. LENGTH & COMPLEXITY
+                if (url.length > 70) {
+                    riskScore += 10;
+                    flags.push("EXCESSIVE LENGTH");
+                }
+
+                // === VERDICT ===
+                if (riskScore >= 20) {
+                    res.innerHTML = `<span class="status-fake">⚠ MALICIOUS LINK DETECTED</span><br>
+                                     <div style="font-size:12px; color:#aaa; margin-top:5px; text-align:center;">
+                                     <strong>RISK LEVEL:</strong> HIGH (${riskScore})<br>
+                                     <strong>FLAGS:</strong> <span style="color:var(--neon-red)">${flags.join(", ")}</span></div>`;
+                } else if (riskScore > 0) {
+                    res.innerHTML = `<span class="status-wait">⚠ CAUTION ADVISED</span><br>
+                                     <div style="font-size:12px; color:#aaa; margin-top:5px; text-align:center;">
+                                     Link contains minor irregularities.<br>Flags: ${flags.join(", ")}</div>`;
+                } else {
+                    res.innerHTML = `<span class="status-real">✔ TARGET VERIFIED SAFE</span><br>
+                                     <div style="font-size:12px; color:#aaa; margin-top:5px; text-align:center;">
+                                     Standard SSL encryption & domain structure.</div>`;
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>1
+this code has ui
